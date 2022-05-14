@@ -9,9 +9,9 @@ import (
 
 var FlagInputModeSelector bool
 
-var EmpyFileNameErr = errors.New("ошибка имени файла, название не може быть пустым")
+var EmptyFileNameErr = errors.New("ошибка имени файла, название не може быть пустым")
 
-type Analiser interface {
+type Analyser interface {
 	Analise() error
 }
 
@@ -31,7 +31,7 @@ func (f *FlagOptions) Analise() error {
 			fmt.Println("указано имя файла:", color.GreenString(f.FileName))
 			return nil
 		}
-		return EmpyFileNameErr
+		return EmptyFileNameErr
 	}
 	fmt.Println("отсутствует опция -m, выбран", color.YellowString("режим по умолчанию"))
 	fmt.Println("указано имя файла:", color.YellowString(f.FileName))

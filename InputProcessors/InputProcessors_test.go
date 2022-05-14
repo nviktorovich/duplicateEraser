@@ -14,7 +14,7 @@ type TestFlagOptionsImitator struct {
 var TestFlagOptionsImitatorSet = []TestFlagOptionsImitator{
 	{"1 flag off, empty name", false, nil, &FlagOptions{false, ""}},
 	{"2 flag off, not empty name", false, nil, &FlagOptions{false, "testName"}},
-	{"3 flag on, empty name", true, EmpyFileNameErr, &FlagOptions{true, ""}},
+	{"3 flag on, empty name", true, EmptyFileNameErr, &FlagOptions{true, ""}},
 	{"4 flag on, not empty name", false, nil, &FlagOptions{true, "testName"}},
 }
 
