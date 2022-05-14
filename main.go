@@ -12,4 +12,8 @@ func main() {
 	if err := a.Analise(); err != nil {
 		log.Fatal(err)
 	}
+	if err := a.NameSet(); err != nil {
+		log.Fatal(err)
+	}
+
 }

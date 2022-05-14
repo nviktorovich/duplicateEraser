@@ -26,17 +26,14 @@ type FlagOptions struct {
 
 func (f *FlagOptions) Analise() error {
 	if f.Mode {
-		fmt.Println("указана опция -m, выбран", color.GreenString("ручной режим"))
-		if f.FileName != "" {
-			fmt.Println("указано имя файла:", color.GreenString(f.FileName))
-			return nil
+		fmt.Println(color.GreenString("ручной режим"))
+		if f.FileName == "" {
+			return EmptyFileNameErr
 		}
-		return EmptyFileNameErr
+		return nil
 	}
-	fmt.Println("отсутствует опция -m, выбран", color.YellowString("режим по умолчанию"))
-	fmt.Println("указано имя файла:", color.YellowString(f.FileName))
+	fmt.Println(color.CyanString("режим по умолчанию"))
 	return nil
-
 }
 
 func (f *FlagOptions) Set() {
