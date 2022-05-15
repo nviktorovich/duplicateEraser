@@ -1,8 +1,6 @@
 package InputProcessors
 
 import (
-	"fmt"
-	"github.com/fatih/color"
 	"gopkg.in/yaml.v2"
 	"os"
 )
@@ -26,6 +24,5 @@ func (f *FlagOptions) NameSet() error {
 		}
 		f.FileName = n.PathName
 	}
-	fmt.Println(color.MagentaString("Название директории:"), f.FileName)
 	return nil
 }

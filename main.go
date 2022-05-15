@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/nviktorovich/duplicateEraser/InputProcessors"
+	"github.com/nviktorovich/duplicateEraser/LogicProcessors"
 	"log"
 )
 
@@ -15,5 +16,15 @@ func main() {
 	if err := a.NameSet(); err != nil {
 		log.Fatal(err)
 	}
+	absPath, err := LogicProcessors.GetAbsPath(a.FileName)
+	if err != nil {
+		log.Fatal(err)
+	}
 
+	ok, err := LogicProcessors.VerifyAbsPath(absPath)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	log.Printf("file path: %s is exist: %t", absPath, ok)
 }
