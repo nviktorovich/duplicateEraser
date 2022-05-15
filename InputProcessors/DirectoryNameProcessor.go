@@ -1,9 +1,13 @@
 package InputProcessors
 
 import (
+	"fmt"
+	"github.com/fatih/color"
 	"gopkg.in/yaml.v2"
 	"os"
 )
+
+const ConfigPath = "InputProcessors/Config.yaml"
 
 type DefaultSettings struct {
 	PathName string `yaml:"Directory"`
@@ -12,7 +16,7 @@ type DefaultSettings struct {
 func (f *FlagOptions) NameSet() error {
 	if !f.Mode {
 		n := new(DefaultSettings)
-		file, err := os.ReadFile("InputProcessors/Config.yaml")
+		file, err := os.ReadFile(ConfigPath)
 		if err != nil {
 			return err
 		}
@@ -21,10 +25,7 @@ func (f *FlagOptions) NameSet() error {
 			return err
 		}
 		f.FileName = n.PathName
-		return nil
 	}
+	fmt.Println(color.MagentaString("Название директории:"), f.FileName)
 	return nil
 }
-
-//fmt.Println("указано имя файла:", color.GreenString(f.FileName))
-//fmt.Println("указано имя файла:", color.YellowString(f.FileName))
