@@ -5,10 +5,14 @@ import (
 	"testing"
 )
 
+// AbsGetMockFunc объявляем переменную, которая является функцией, аргументы и
+// возврат которой, соответствуют методу abs
 var AbsGetMockFunc func(path string) (string, error)
 
+// AbsGetMockStruct пустая структура для имплементации интерфейса AbsGetter
 type AbsGetMockStruct struct{}
 
+// abs реализация метода для структуры AbsGetMockStruct
 func (a AbsGetMockStruct) abs(path string) (string, error) {
 	return AbsGetMockFunc(path)
 }
@@ -34,10 +38,14 @@ func TestGetAbsPath(t *testing.T) {
 
 // testing Verify func
 
+// AbsVerifyMockFunc объявляем переменную, которая является функцией, аргументы и
+// возврат которой, соответствуют методу stat
 var AbsVerifyMockFunc func(name string) (fs.FileInfo, error)
 
+// AbsVerifyMockStruct пустая структура для имплементации интерфейса ABSVerifier
 type AbsVerifyMockStruct struct{}
 
+// stat реализация метода для заглушки
 func (a AbsVerifyMockStruct) stat(name string) (fs.FileInfo, error) {
 	return AbsVerifyMockFunc(name)
 }
