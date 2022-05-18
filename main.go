@@ -27,4 +27,9 @@ func main() {
 	}
 
 	log.Printf("file path: %s is exist: %t", absPath, ok)
+
+	err = LogicProcessors.GetFileList(absPath)
+	if err != nil {
+		log.Fatal(err)
+	}
 }
