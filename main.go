@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/nviktorovich/duplicateEraser/InputProcessors"
 	"github.com/nviktorovich/duplicateEraser/LogicProcessors"
 	"log"
@@ -28,8 +29,11 @@ func main() {
 
 	log.Printf("file path: %s is exist: %t", absPath, ok)
 
-	err = LogicProcessors.GetFileList(absPath)
+	m, err := LogicProcessors.GetFileList(absPath)
 	if err != nil {
 		log.Fatal(err)
 	}
+	pool := LogicProcessors.NewDirPoolStruct(m)
+	pool.Filter()
+	fmt.Println(pool.M)
 }

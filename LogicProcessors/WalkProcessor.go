@@ -1,7 +1,6 @@
 package LogicProcessors
 
 import (
-	"fmt"
 	"io/fs"
 	"path/filepath"
 	"strconv"
@@ -30,54 +29,47 @@ func init() {
 	WalkVar = WalkStruct{}
 }
 
-type Banker interface {
-	Filter()
-	PutData(name, path string, size int64)
+type DirPoolStruct struct {
+	M map[string][]string
 }
 
-type FileBank struct {
-	Bank map[string][]string
+func NewDirPoolStruct(m map[string][]string) *DirPoolStruct {
+	return &DirPoolStruct{m}
+
 }
 
-func NewFileBank() *FileBank {
-	return new(FileBank)
-}
-
-// Filter метод, который фильтрует значения в словаре (тип []string) и удаляет
-// записи, в которых только один экземплряр
-func (f *FileBank) Filter() {
-	for k, v := range f.Bank {
+func (m *DirPoolStruct) Filter() {
+	for k, v := range m.M {
 		if len(v) < 2 {
-			delete(f.Bank, k)
+			delete(m.M, k)
 		}
 	}
 }
 
-// PutData метод для объекта *FileBank, добавляет пару ключ - значение. Ключем
-// является объединенная строка (название_размер), значением - список путей к
-// файлу
-func (f *FileBank) PutData(name, path string, size int64) {
+// GetKeyName функция, которая принимает на вход строку и число в формате int64 и
+// возврашает строку, где входные аргументы соединены через "_"
+func GetKeyName(name string, size int64) string {
 	strSize := strconv.FormatInt(size, 10)
-	key := name + "_" + strSize
-	f.Bank[key] = append(f.Bank[key], path)
+	return name + "_" + strSize
 }
 
-// GetFileList обрабатывает рекурсивно указанную директорию.
-func GetFileList(path string) error {
-	// необходимо настроить работу функции GetFileList таким образом, чтобы получить объект FileBank с заполненной мапой
-	err := WalkVar.walk(path,
-		func(path string, info fs.FileInfo, err error) error {
-			if !info.IsDir() {
-				fmt.Printf("filename is: %s, file size is: %d byte(s)\n", info.Name(), info.Size())
-				fmt.Println(filepath.Abs(info.Name()))
-				// вставить код, отвечающий за формирование словаря
-			}
-			return nil
-		})
-	if err != nil {
-		return err
+// GetFileList обрабатывает рекурсивно указанную директорию. Формирует мапу.
+// дабавить тестирование всего пакета необходимо!!!
+func GetFileList(root string) (map[string][]string, error) {
+	m := make(map[string][]string)
+
+	if err := WalkVar.walk(root, func(path string, info fs.FileInfo, err error) error {
+		key := GetKeyName(info.Name(), info.Size())
+		val := path
+		if err != nil {
+			return err
+		}
+		m[key] = append(m[key], val)
+		return nil
+	}); err != nil {
+		return m, err
 	}
-	return nil
+	return m, nil
 }
 
 // находим все файлы и формируем список
