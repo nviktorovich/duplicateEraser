@@ -36,4 +36,5 @@ func main() {
 	pool := LogicProcessors.NewDirPoolStruct(m)
 	pool.Filter()
 	fmt.Println(pool.M)
+
 }
