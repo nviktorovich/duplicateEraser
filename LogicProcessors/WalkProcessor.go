@@ -53,10 +53,11 @@ func GetKeyName(name string, size int64) string {
 	return name + "_" + strSize
 }
 
+var m = make(map[string][]string)
+
 // GetFileList обрабатывает рекурсивно указанную директорию. Формирует мапу.
 // дабавить тестирование всего пакета необходимо!!!
 func GetFileList(root string) (map[string][]string, error) {
-	m := make(map[string][]string)
 
 	if err := WalkVar.walk(root, func(path string, info fs.FileInfo, err error) error {
 		key := GetKeyName(info.Name(), info.Size())
