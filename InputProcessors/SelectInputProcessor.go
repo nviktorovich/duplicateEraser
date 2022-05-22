@@ -9,63 +9,103 @@ import (
 
 var EmptyFileNameErr = errors.New("ошибка имени файла, название не може быть пустым")
 
-type Analyser interface {
-	Analise() error
+// CommandLineOptions структура, предназначенная для хранения параметров командной строки и аргументов
+type CommandLineOptions struct {
+	M bool
+	D bool
+	A []string
 }
 
-type Setter interface {
-	Set()
-}
-
-type FlagOptions struct {
-	Mode     bool
-	Eraser   bool
-	FileName string
-}
-
-func (f *FlagOptions) Analise() error {
-
-	fmt.Printf(color.YellowString("\nSELECTED OPTIONS:\n"))
-	// Option name -m
-	fmt.Printf(color.BlueString("Режим ввода пути корневой директории (-m):\n"))
-	if f.Mode {
-		fmt.Println(color.GreenString("\t- ручной ввод корневой директории"))
-		if f.FileName == "" {
-			return EmptyFileNameErr
-		}
-	} else {
-		fmt.Println(color.CyanString("\t- корневая директороия по умолчанию"))
-	}
-
-	// Option name -d
-	fmt.Printf(color.BlueString("Режим очистки (-d):\n"))
-	if f.Eraser {
-		fmt.Println(color.RedString("\t- режим очистки влючен, дубликаты будут удалены"))
-	} else {
-		fmt.Println(color.CyanString("\t- режим очистки выключен"))
-	}
-
-	fmt.Println()
-
-	return nil
-
-}
-
-var (
-	FlagInputSelector  bool
-	FlagEraserSelector bool
-)
-
-func (f *FlagOptions) Set() {
+// NewCommandLineOptions функция для анализа ввода командной строки. Возвращает
+// объект с состоянием флагов, и список аргументов командной строки
+func NewCommandLineOptions() CommandLineOptions {
+	var (
+		FlagInputSelector  bool
+		FlagEraserSelector bool
+	)
 
 	flag.BoolVar(&FlagInputSelector, "m", false, "выбор режима ввода имени корневой директории: наличие флага - ручной; отстутвие - по умолчанию")
 	flag.BoolVar(&FlagEraserSelector, "d", false, "выбор режима удаления дубликатов: наличие флага - удаление; отстутвие - режим просмотра")
 	flag.Parse()
-	f.Mode = FlagInputSelector
-	f.Eraser = FlagEraserSelector
-	f.FileName = flag.Arg(0)
+
+	return CommandLineOptions{FlagInputSelector, FlagEraserSelector, flag.Args()}
 }
 
-func MakeSet(s Setter) {
-	s.Set()
+// SettingsOptions структура которая хранит состояние режима очистки true - удалять, false - нет и корневую директорию.
+type SettingsOptions struct {
+	Erase bool
+	Root  string
+}
+
+// NewSettingsOptions принимает на вход структуру с данными ввода командной
+// строки, возвращает структуру SettingsOptions, или ошибку
+func NewSettingsOptions(c CommandLineOptions, fn func() (string, error)) (SettingsOptions, error) {
+	s := new(SettingsOptions)
+	var err error
+	// 1 определить режим очистки
+	s.Erase = c.D
+
+	// 2 определить имя директории
+	var rootName string
+	switch c.M {
+	// флаг m установлен, проверяем наличие аргументов. Если нет - ошибка. Проверяем
+	// содержание первого аргумента, если пустая строка - ошибка, в остальных
+	// сслучаях считаем, что имя корневой директории - это первый аргуммент
+	case true:
+		if len(c.A) < 1 {
+			err = EmptyFileNameErr
+		} else {
+			if c.A[0] == "" {
+				err = EmptyFileNameErr
+			} else {
+				s.Root = c.A[0]
+			}
+		}
+		return *s, err
+
+	// флаг m - не установлен, необходимо отработать с конфигруационным файлом
+	default:
+		rootName, err = fn()
+		if err != nil {
+			return *s, err
+		}
+		s.Root = rootName
+		return *s, nil
+	}
+
+	// описать ошибку когда есть флаг ручного ввода, но нет имени директории
+
+	// описать ошибку когда не удалось отработать с Config.yaml
+
+}
+
+// GetAbsPath получает на фход строку, и функцию. В рабочем варианте, функция
+// должна быть filepath.Abs(path string)(string, error). Возвращает строку -
+// абсолютный путь, или ошибку
+func (s *SettingsOptions) GetAbsPath(fn func(path string) (string, error)) error {
+	rootAbsPath, err := fn(s.Root)
+	if err != nil {
+		return err
+	}
+	s.Root = rootAbsPath
+	return nil
+}
+
+// Print выводит в командную строку настройки и путь к корневой директории
+func Print(c CommandLineOptions, s SettingsOptions) {
+	fmt.Println(color.YellowString("Настройки программы duplicateEraser:"))
+	fmt.Println()
+	fmt.Println(color.BlueString("Корневая директория:"))
+
+	if c.M {
+		fmt.Println(color.GreenString("\t-ручной ввод, директория:"), s.Root)
+	} else {
+		fmt.Println(color.CyanString("\t-автоматический ввод, директория:"), s.Root)
+	}
+	fmt.Println(color.BlueString("Режим очистки:"))
+	if s.Erase {
+		fmt.Println(color.RedString("\t-режим очистки включен"))
+	} else {
+		fmt.Println(color.CyanString("\t-режим очистки выключен"))
+	}
 }

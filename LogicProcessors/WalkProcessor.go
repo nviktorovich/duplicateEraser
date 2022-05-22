@@ -6,74 +6,50 @@ import (
 	"strconv"
 )
 
-// Walker интерфейс, реализующий метод walk (подготовка для создания заглушки, для метода filepath.Walk()
+// DuplicateFileInfo объединяем имя файла и размер
+type DuplicateFileInfo struct {
+	UniteFileNameAndFileSize string
+	FilePaths                []string
+}
+
 type Walker interface {
 	walk(root string, fn func(path string, info fs.FileInfo, err error) error) error
 }
 
-// WalkStruct пустая структура для последующей имплементации в интерфейс Walker
-type WalkStruct struct{}
+type WorkAbs struct{}
 
-// описание метода walk для структуры WalkStruct
-func (w WalkStruct) walk(root string, fn func(path string, info fs.FileInfo, err error) error) error {
+func (w WorkAbs) walk(root string, fn func(path string, info fs.FileInfo, err error) error) error {
 	return filepath.Walk(root, fn)
 }
 
-// WalkVar объявление переменной, для последующей передачи внутрь структуры
-// WalkStruct, т.о переменная будет содержать структуру, которой присущь интерфес
-// Walker
-var WalkVar Walker
+var WalkProc Walker
 
-// инициализация, передача структуры в переменную
 func init() {
-	WalkVar = WalkStruct{}
+	WalkProc = WorkAbs{}
 }
 
-type DirPoolStruct struct {
-	M map[string][]string
-}
+type RootMap map[string][]string
 
-func NewDirPoolStruct(m map[string][]string) *DirPoolStruct {
-	return &DirPoolStruct{m}
-
-}
-
-func (m *DirPoolStruct) Filter() {
-	for k, v := range m.M {
-		if len(v) < 2 {
-			delete(m.M, k)
-		}
-	}
-}
-
-// GetKeyName функция, которая принимает на вход строку и число в формате int64 и
-// возврашает строку, где входные аргументы соединены через "_"
-func GetKeyName(name string, size int64) string {
-	strSize := strconv.FormatInt(size, 10)
-	return name + "_" + strSize
-}
-
-var m = make(map[string][]string)
-
-// GetFileList обрабатывает рекурсивно указанную директорию. Формирует мапу.
-// дабавить тестирование всего пакета необходимо!!!
-func GetFileList(root string) (map[string][]string, error) {
-
-	if err := WalkVar.walk(root, func(path string, info fs.FileInfo, err error) error {
-		key := GetKeyName(info.Name(), info.Size())
-		val := path
-		if err != nil {
-			return err
-		}
-		m[key] = append(m[key], val)
+// NewRootMap возвращает объект RootMap, который содержит полную карту в указанной корневой директории
+func NewRootMap(path string) (RootMap, error) {
+	r := make(RootMap)
+	if err := WalkProc.walk(path, func(path string, info fs.FileInfo, err error) error {
+		name := info.Name() + "_" + strconv.FormatInt(info.Size(), 10)
+		r[name] = append(r[name], path)
 		return nil
 	}); err != nil {
-		return m, err
+		return r, err
 	}
-	return m, nil
+	return r, nil
 }
 
-// находим все файлы и формируем список
-// фильтруем список, так, чтобы оставались только файлы, которые дублируют другие
-// признак дубля - одинаковое имя, одинаковое содержание, имя и содержание
-// удалям все дубликаты, кроме одного файла
+// Filter метод структуры RootMap отфильтровывающий дубликаты, в карте остаются только дубли
+func (m RootMap) Filter() {
+	for k, v := range m {
+		if len(v) < 2 {
+			delete(m, k)
+		} else {
+			m[k] = v[1:]
+		}
+	}
+}

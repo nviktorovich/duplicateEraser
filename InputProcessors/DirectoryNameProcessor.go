@@ -11,18 +11,18 @@ type DefaultSettings struct {
 	PathName string `yaml:"Directory"`
 }
 
-func (f *FlagOptions) NameSet() error {
-	if !f.Mode {
-		n := new(DefaultSettings)
-		file, err := os.ReadFile(ConfigPath)
-		if err != nil {
-			return err
-		}
-		err = yaml.Unmarshal(file, n)
-		if err != nil {
-			return err
-		}
-		f.FileName = n.PathName
+// GetDefaultRootName возвращает строку и ошибку. Предназначена для обработки конфигурационного файла ConfigPath
+func GetDefaultRootName() (string, error) {
+	d := new(DefaultSettings)
+
+	file, err := os.ReadFile(ConfigPath)
+	if err != nil {
+		return "", err
 	}
-	return nil
+	err = yaml.Unmarshal(file, d)
+	if err != nil {
+		return "", err
+	}
+	return d.PathName, nil
+
 }

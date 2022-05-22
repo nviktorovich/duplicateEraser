@@ -2,39 +2,42 @@ package main
 
 import (
 	"fmt"
+	"github.com/nviktorovich/duplicateEraser/EraserProcessor"
 	"github.com/nviktorovich/duplicateEraser/InputProcessors"
 	"github.com/nviktorovich/duplicateEraser/LogicProcessors"
 	"log"
+	"path/filepath"
 )
 
 func main() {
-	a := new(InputProcessors.FlagOptions)
-	InputProcessors.MakeSet(a)
 
-	if err := a.Analise(); err != nil {
-		log.Fatal(err)
-	}
-	if err := a.NameSet(); err != nil {
-		log.Fatal(err)
-	}
-	absPath, err := LogicProcessors.GetAbsPath(a.FileName)
+	CommandLineParameters := InputProcessors.NewCommandLineOptions()
+
+	SettingsParameters, err := InputProcessors.NewSettingsOptions(CommandLineParameters, InputProcessors.GetDefaultRootName)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	ok, err := LogicProcessors.VerifyAbsPath(absPath)
-	if err != nil {
+	if err = SettingsParameters.GetAbsPath(filepath.Abs); err != nil {
 		log.Fatal(err)
 	}
 
-	log.Printf("file path: %s is exist: %t", absPath, ok)
+	InputProcessors.Print(CommandLineParameters, SettingsParameters)
 
-	m, err := LogicProcessors.GetFileList(absPath)
+	if err = LogicProcessors.Validate(SettingsParameters.Root); err != nil {
+		log.Fatal(err)
+	}
+
+	RootMap, err := LogicProcessors.NewRootMap(SettingsParameters.Root)
 	if err != nil {
 		log.Fatal(err)
 	}
-	pool := LogicProcessors.NewDirPoolStruct(m)
-	pool.Filter()
-	fmt.Println(pool.M)
+	RootMap.Filter()
+	fmt.Println(RootMap)
+	if SettingsParameters.Erase {
+		if err = EraserProcessor.RemoveOperator(RootMap); err != nil {
+			log.Fatal(err)
+		}
 
+	}
 }
