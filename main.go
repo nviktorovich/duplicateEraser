@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"github.com/nviktorovich/duplicateEraser/EraserProcessor"
 	"github.com/nviktorovich/duplicateEraser/InputProcessors"
 	"github.com/nviktorovich/duplicateEraser/LogicProcessors"
@@ -33,11 +32,11 @@ func main() {
 		log.Fatal(err)
 	}
 	RootMap.Filter()
-	fmt.Println(RootMap)
-	if SettingsParameters.Erase {
-		if err = EraserProcessor.RemoveOperator(RootMap); err != nil {
+
+	for _, v := range RootMap {
+		if err = EraserProcessor.EraserOperator(v); err != nil {
 			log.Fatal(err)
 		}
-
 	}
+
 }

@@ -2,46 +2,39 @@ package EraserProcessor
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"sync"
 )
 
-func RemoveOperator(m map[string][]string) error {
-	errChan := make(chan error)
-	workInfoChan := make(chan string)
+func EraserOperator(l []string) error {
+	var err error
+	chDone := make(chan string)
+	chErr := make(chan error)
 	wg := sync.WaitGroup{}
-
+	for i := range l {
+		wg.Add(1)
+		go DeleteFunc(&wg, l[i], chDone, chErr)
+	}
 	go func() {
-		select {
-		case workInfo := <-workInfoChan:
-			fmt.Println(workInfo)
-		case err := <-errChan:
-			log.Print(err)
-			os.Exit(1)
+		for {
+			select {
+			case inf := <-chDone:
+				fmt.Println(inf)
+			case errData := <-chErr:
+				err = errData
+				break
+			}
 		}
 	}()
 
-	for k := range m {
-		for i := range m[k] {
-			wg.Add(1)
-			go DeleteDuplicate(m[k][i], &wg, workInfoChan, errChan)
-		}
-	}
 	wg.Wait()
-	close(workInfoChan)
-
-	return nil
-
+	return err
 }
 
-func DeleteDuplicate(path string, wg *sync.WaitGroup, infoCh chan<- string, errCh chan<- error) {
-	defer wg.Done()
+func DeleteFunc(w *sync.WaitGroup, path string, chW chan<- string, chE chan<- error) {
+	defer w.Done()
 	if err := os.Remove(path); err != nil {
-		errCh <- err
-		return
+		chE <- err
 	}
-	mess := "file: " + path + " was successfully deleted"
-	infoCh <- mess
-
+	chW <- path + " was successfully deleted"
 }
